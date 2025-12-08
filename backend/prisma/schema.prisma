@@ -1,0 +1,35 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Department {
+  id        Int        @id @default(autoincrement())
+  name      String
+  location  String?
+  employees Employee[]
+}
+
+model Employee {
+  id           Int        @id @default(autoincrement())
+  firstName    String
+  lastName     String
+  email        String     @unique
+  departmentId Int
+  department   Department @relation(fields: [departmentId], references: [id])
+  devices      Device[]
+}
+
+model Device {
+  id           Int       @id @default(autoincrement())
+  serialNumber String    @unique
+  type         String    // np. Laptop, Monitor
+  price        Float
+  purchaseDate DateTime
+  employeeId   Int?      // Nullable - sprzęt może być w magazynie
+  employee     Employee? @relation(fields: [employeeId], references: [id])
+}
