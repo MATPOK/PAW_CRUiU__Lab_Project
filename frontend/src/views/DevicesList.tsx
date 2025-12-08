@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
-import { DataGrid, GridColDef, GridPaginationModel } from '@mui/x-data-grid';
+import { DataGrid, type GridColDef, type GridPaginationModel } from '@mui/x-data-grid';
 import { Container, Typography, Paper, Chip } from '@mui/material';
 import { getDevices } from '../services/deviceService';
-import { Device } from '../types';
+import type { Device } from '../types';
 
 export default function DevicesList() {
   // Stan danych

@@ -1,5 +1,5 @@
 import { api } from '../api/axios';
-import { Device, PaginatedResponse } from '../types';
+import type { Device, PaginatedResponse } from '../types';
 
 export const getDevices = async (page: number, limit: number) => {
   // Backend oczekuje page=1, page=2...
