@@ -13,8 +13,27 @@ export class DevicesService {
     });
   }
 
-  findAll() {
-    return this.prisma.device.findMany();
+  async findAll(page: number, limit: number) {
+    const skip = (page - 1) * limit;
+
+    // Wykonujemy dwa zapytania równolegle: pobranie danych i policzenie wszystkich
+    const [data, total] = await this.prisma.$transaction([
+      this.prisma.device.findMany({
+        skip: skip,
+        take: limit,
+        include: { employee: true }, // Od razu pobierzemy dane pracownika!
+        orderBy: { id: 'desc' }, // Najnowsze na górze
+      }),
+      this.prisma.device.count(),
+    ]);
+
+    return {
+      data,        // Lista urządzeń
+      total,       // Łączna liczba urządzeń w bazie
+      page,        // Aktualna strona
+      limit,       // Ile wyników na stronę
+      totalPages: Math.ceil(total / limit),
+    };
   }
 
   findOne(id: number) {
