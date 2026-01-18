@@ -1,5 +1,6 @@
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
 }
 
 datasource db {
@@ -27,9 +28,9 @@ model Employee {
 model Device {
   id           Int       @id @default(autoincrement())
   serialNumber String    @unique
-  type         String    // np. Laptop, Monitor
+  type         String
   price        Float
   purchaseDate DateTime
-  employeeId   Int?      // Nullable - sprzęt może być w magazynie
+  employeeId   Int?
   employee     Employee? @relation(fields: [employeeId], references: [id])
 }

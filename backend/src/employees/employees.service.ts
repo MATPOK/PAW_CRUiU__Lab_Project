@@ -14,13 +14,14 @@ export class EmployeesService {
   }
 
   findAll() {
-    // include: { department: true } <- To jest "magia" relacji.
-    // Dzięki temu backend od razu zwróci nazwę działu pracownika!
     return this.prisma.employee.findMany({
       include: {
-        department: true,
-        devices: true, 
+        department: true, 
+        devices: true,   
       },
+      orderBy: {
+        id: 'desc',
+      }
     });
   }
 
@@ -39,6 +40,8 @@ export class EmployeesService {
   }
 
   remove(id: number) {
-    return this.prisma.employee.delete({ where: { id } });
+    return this.prisma.employee.delete({
+      where: { id },
+    });
   }
 }
