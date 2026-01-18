@@ -1,21 +1,28 @@
-import { CssBaseline, ThemeProvider, createTheme } from '@mui/material';
-import DevicesList from './views/DevicesList';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'; 
+import { CssBaseline, ThemeProvider } from '@mui/material';
+import { appTheme } from './theme';
+import MainLayout from './components/MainLayout';
 
-// Ciemny motyw (wygląda nowocześnie i profesjonalnie)
-const darkTheme = createTheme({
-  palette: {
-    mode: 'dark',
-  },
-});
+import Dashboard from './views/Dashboard';
+import DevicesList from './views/DevicesList';
+import EmployeesList from './views/EmployeesList';
+import DepartmentsList from './views/DepartmentsList';
 
 function App() {
   return (
-    <ThemeProvider theme={darkTheme}>
-      {/* CssBaseline resetuje style przeglądarki do standardu Material UI */}
+    <ThemeProvider theme={appTheme}>
       <CssBaseline />
-      
-      {/* Tu wyświetlamy naszą tabelę */}
-      <DevicesList />
+      <BrowserRouter>
+        <MainLayout>
+          <Routes>
+            <Route path="/" element={<Dashboard />} />
+            <Route path="/devices" element={<DevicesList />} />
+            <Route path="/employees" element={<EmployeesList />} />
+            <Route path="/departments" element={<DepartmentsList />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </MainLayout>
+      </BrowserRouter>
       
     </ThemeProvider>
   );

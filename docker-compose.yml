@@ -1,7 +1,7 @@
 version: '3.8'
 
 services:
-  # Baza danych PostgreSQL
+  # 1. BAZA DANYCH (Bez zmian w konfiguracji, dodałem tylko network)
   db:
     image: postgres:15-alpine
     container_name: cruiu_db
@@ -11,11 +11,54 @@ services:
       POSTGRES_PASSWORD: password123
       POSTGRES_DB: cruiu_db
     ports:
-      - "5433:5432"
+      - "5433:5432" # 5433 dla Twojego Windowsa, 5432 wewnątrz sieci Docker
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    networks:
+      - app-network
 
-  # Adminer - interfejs www do bazy 
+  # 2. BACKEND (NestJS + Prisma)
+  backend:
+    build:
+      context: ./backend # Docker szuka tu pliku Dockerfile
+      dockerfile: Dockerfile
+    container_name: cruiu_backend
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      # WAŻNE: Tutaj jako hosta podajemy nazwę serwisu "db", a nie localhost!
+      # Port wewnątrz sieci to 5432 (niezależnie od tego, co wystawiasz na zewnątrz)
+      DATABASE_URL: "postgresql://user:password123@db:5432/cruiu_db?schema=public"
+    volumes:
+      - ./backend:/app          # Hot-Reload: zmiany w plikach lokalnych trafią do kontenera
+      - /app/node_modules       # Zapobiega nadpisaniu node_modules kontenera przez lokalne (puste)
+    depends_on:
+      - db # Backend poczeka aż baza wystartuje
+    networks:
+      - app-network
+
+  # 3. FRONTEND (React + Vite)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: cruiu_frontend
+    restart: always
+    ports:
+      - "5173:5173"
+    environment:
+      # Frontend działa w przeglądarce użytkownika, więc dla niego Backend to localhost
+      VITE_API_URL: "http://localhost:3000"
+    volumes:
+      - ./frontend:/app         # Hot-Reload dla Frontendu
+      - /app/node_modules
+    depends_on:
+      - backend
+    networks:
+      - app-network
+
+  # 4. ADMINER (Interfejs WWW)
   adminer:
     image: adminer
     container_name: cruiu_adminer
@@ -24,6 +67,12 @@ services:
       - "8080:8080"
     depends_on:
       - db
+    networks:
+      - app-network
 
 volumes:
   postgres_data:
+
+networks:
+  app-network:
+    driver: bridge
