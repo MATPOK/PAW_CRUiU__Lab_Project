@@ -28,11 +28,9 @@ services:
       - "3000:3000"
     environment:
       DATABASE_URL: "postgresql://user:password123@db:5432/cruiu_db?schema=public"
-    volumes:
-      - ./backend:/app 
-      - /app/node_modules 
     depends_on:
       - db
+    command: /bin/sh -c "npx prisma migrate deploy && npx prisma db seed && npm run start:dev"
     networks:
       - app-network
 

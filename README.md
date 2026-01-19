@@ -1,7 +1,7 @@
-================================================================================
+
 PROJEKT: Centralny Rejestr Urządzeń i Użytkowników
 DOKUMENTACJA TECHNICZNA I UŻYTKOWA
-================================================================================
+
 
 1. WPROWADZENIE
 --------------------------------------------------------------------------------
@@ -178,7 +178,6 @@ KROKI KONFIGURACJI PRODUKCYJNEJ:
    Skonfiguruj Nginx jako Reverse Proxy przekierowujący ruch z portu 80
    na porty kontenerów (Frontend: 5173, Backend: 3000).
 
-================================================================================
+
 Autorzy dokumentacji: Mateusz Pokrywka, Maciej Pereślucha
 Data: 19.01.2026
-================================================================================
