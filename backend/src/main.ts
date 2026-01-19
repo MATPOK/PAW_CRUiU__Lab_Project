@@ -15,9 +15,8 @@ async function bootstrap() {
   app.useGlobalFilters(new AllExceptionsFilter())
 
   const config = new DocumentBuilder()
-    .setTitle('AssetManager API')
+    .setTitle('CRUiU API')
     .setDescription('Dokumentacja API do zarządzania zasobami')
-    .setVersion('1.0')
     .build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, document);
