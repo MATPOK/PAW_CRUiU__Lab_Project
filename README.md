@@ -120,9 +120,9 @@ Po uruchomieniu środowiska aplikacja dostępna jest pod adresami:
 
 Pliki graficzne znajdują się w folderze /docs w repozytorium:
 
-- docs/dashboard.png – Widok statystyk
-- docs/list.png – Widok tabeli urządzeń
-- docs/form.png – Widok formularza dodawania
+- docs/dashboard.jpg – Widok statystyk
+- docs/list.jpg – Widok tabeli urządzeń
+- docs/form.jpg – Widok formularza dodawania
 
 ------------------------------------------------------------
 
