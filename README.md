@@ -1,6 +1,6 @@
 
-PROJEKT: Centralny Rejestr Urządzeń i Użytkowników
-DOKUMENTACJA TECHNICZNA I UŻYTKOWA
+# Centralny Rejestr Urządzeń i Użytkowników
+## DOKUMENTACJA TECHNICZNA I UŻYTKOWA
 
 
 1. WPROWADZENIE
@@ -179,5 +179,5 @@ KROKI KONFIGURACJI PRODUKCYJNEJ:
    na porty kontenerów (Frontend: 5173, Backend: 3000).
 
 
-Autorzy dokumentacji: Mateusz Pokrywka, Maciej Pereślucha
+Autorzy dokumentacji: **Mateusz Pokrywka, Maciej Pereślucha**
 Data: 19.01.2026
