@@ -2,14 +2,13 @@ import { api } from '../api/axios';
 import type { Device } from '../types';
 import type { DeviceFormData } from '../schemas/deviceSchema';
 
-export const getDevices = async (): Promise<Device[]> => {
-  const response = await api.get('/devices');
+export const getDevices = async (search: string = ''): Promise<Device[]> => {
+  const response = await api.get('/devices', { params: { search } });
   
-  if (response.data && Array.isArray(response.data.data)) {
-      return response.data.data; 
+  if (response.data && Array.isArray((response.data as any).data)) {
+      return (response.data as any).data;
   }
-  
-  return Array.isArray(response.data) ? response.data : [];
+  return response.data as Device[];
 };
 
 export const deleteDevice = async (id: number) => {

@@ -7,8 +7,8 @@ export interface Department {
   employees?: any[];
 }
 
-export const getDepartments = async () => {
-  const response = await api.get<Department[]>('/departments');
+export const getDepartments = async (search: string = '') => {
+  const response = await api.get<Department[]>('/departments', { params: { search } });
   return response.data;
 };
 

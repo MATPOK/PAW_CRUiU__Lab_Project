@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react';
 import { DataGrid, type GridColDef, GridActionsCellItem } from '@mui/x-data-grid';
-import { Container, Typography, Paper, Chip, Box, Button } from '@mui/material';
+import { Container, Typography, Paper, Chip, Box, Button, TextField, InputAdornment } from '@mui/material'; // Dodano TextField, InputAdornment
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
+import SearchIcon from '@mui/icons-material/Search'; 
+
 import { getEmployees, deleteEmployee, createEmployee, updateEmployee } from '../services/employeeService';
 import type { Employee } from '../types';
 import EmployeeFormDialog from '../components/EmployeeFormDialog';
@@ -16,10 +18,12 @@ export default function EmployeesList() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
 
-  const fetchData = async () => {
+  const [searchTerm, setSearchTerm] = useState('');
+
+  const fetchData = async (search: string = '') => {
     setLoading(true);
     try {
-      const data = await getEmployees();
+      const data = await getEmployees(search);
       setRows(data);
     } catch (error) {
       console.error("Błąd pobierania:", error);
@@ -29,14 +33,20 @@ export default function EmployeesList() {
   };
 
   useEffect(() => {
-    fetchData();
+    fetchData(); 
   }, []);
+
+  const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const value = event.target.value;
+    setSearchTerm(value); 
+    fetchData(value);     
+  };
 
   const handleDelete = async (id: number) => {
     if (confirm('Czy na pewno chcesz usunąć tego pracownika?')) {
       try {
         await deleteEmployee(id);
-        fetchData();
+        fetchData(searchTerm);
       } catch (error) {
         alert('Nie udało się usunąć. Może ma przypisane urządzenia?');
       }
@@ -61,7 +71,7 @@ export default function EmployeesList() {
         await createEmployee(data);
       }
       setIsModalOpen(false);
-      fetchData();
+      fetchData(searchTerm);
     } catch (error) {
       alert('Błąd zapisu. Sprawdź czy email jest unikalny!');
     }
@@ -121,6 +131,24 @@ export default function EmployeesList() {
         </Button>
       </Box>
 
+      <Paper sx={{ p: 2, mb: 2 }}>
+        <TextField
+          fullWidth
+          variant="outlined"
+          placeholder="Szukaj pracownika (imię, nazwisko, email)..."
+          value={searchTerm}
+          onChange={handleSearchChange}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <SearchIcon color="action" />
+              </InputAdornment>
+            ),
+          }}
+          size="small"
+        />
+      </Paper>
+
       <Paper sx={{ height: 500, width: '100%' }}>
         <DataGrid
           rows={rows}
@@ -132,7 +160,7 @@ export default function EmployeesList() {
         />
       </Paper>
 
-      {/* Modal z obsługą edycji */}
+    
       <EmployeeFormDialog 
         open={isModalOpen} 
         onClose={() => setIsModalOpen(false)} 

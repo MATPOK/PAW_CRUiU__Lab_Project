@@ -13,14 +13,18 @@ export class DepartmentsService {
     });
   }
 
-  findAll() {
+  findAll(search?: string) {
+    const where = search ? {
+      OR: [
+        { name: { contains: search, mode: 'insensitive' as const } },
+        { location: { contains: search, mode: 'insensitive' as const } }
+      ]
+    } : {};
+
     return this.prisma.department.findMany({
-      include: {
-        employees: true,
-      },
-      orderBy: {
-        id: 'desc',
-      }
+      where,
+      include: { employees: true },
+      orderBy: { id: 'asc' }
     });
   }
 

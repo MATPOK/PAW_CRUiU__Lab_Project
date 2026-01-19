@@ -2,8 +2,8 @@ import { api } from '../api/axios';
 import type { Employee } from '../types';
 import type { EmployeeFormData } from '../schemas/employeeSchema';
 
-export const getEmployees = async () => {
-  const response = await api.get<Employee[]>('/employees');
+export const getEmployees = async (search: string = '') => {
+  const response = await api.get<Employee[]>('/employees', { params: { search } });
   return response.data;
 };
 

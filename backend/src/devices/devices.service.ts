@@ -13,25 +13,20 @@ export class DevicesService {
     });
   }
 
-  async findAll(page: number = 1, limit: number = 1000) {
-    const skip = (page - 1) * limit;
+  async findAll(search?: string) {
+    const where = search ? {
+      OR: [
+        { serialNumber: { contains: search, mode: 'insensitive' as const } },
+        { type: { contains: search, mode: 'insensitive' as const } },
+        { employee: { lastName: { contains: search, mode: 'insensitive' as const } } }
+      ]
+    } : {};
 
-    const [data, total] = await this.prisma.$transaction([
-      this.prisma.device.findMany({
-        skip: skip,
-        take: limit,
-        include: { employee: true },
-        orderBy: { id: 'desc' },
-      }),
-      this.prisma.device.count(),
-    ]);
-
-    return {
-      data,
-      total,
-      page,
-      limit,
-    };
+    return this.prisma.device.findMany({
+      where, 
+      include: { employee: true },
+      orderBy: { id: 'desc' },
+    });
   }
 
   findOne(id: number) {

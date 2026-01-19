@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react';
 import { DataGrid, type GridColDef, GridActionsCellItem } from '@mui/x-data-grid';
-import { Container, Typography, Paper, Box, Button, Chip } from '@mui/material';
+import { Container, Typography, Paper, Box, Button, Chip, TextField, InputAdornment } from '@mui/material'; // Dodano TextField, InputAdornment
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import ComputerIcon from '@mui/icons-material/Computer';
+import SearchIcon from '@mui/icons-material/Search'; // Dodano ikonę lupy
+
 import { getDevices, deleteDevice, createDevice, updateDevice } from '../services/deviceService';
 import type { Device } from '../types';
 import DeviceFormDialog from '../components/DeviceFormDialog';
@@ -16,10 +18,12 @@ export default function DevicesList() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingDevice, setEditingDevice] = useState<Device | null>(null);
 
-  const fetchData = async () => {
+  const [searchTerm, setSearchTerm] = useState('');
+
+  const fetchData = async (search: string = '') => {
     setLoading(true);
     try {
-      const data = await getDevices();
+      const data = await getDevices(search);
       setRows(data);
     } catch (error) {
       console.error("Błąd pobierania:", error);
@@ -29,13 +33,19 @@ export default function DevicesList() {
   };
 
   useEffect(() => {
-    fetchData();
+    fetchData(); 
   }, []);
+
+  const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const value = event.target.value;
+    setSearchTerm(value); 
+    fetchData(value);     
+  };
 
   const handleDelete = async (id: number) => {
     if (confirm('Usunąć to urządzenie?')) {
       await deleteDevice(id);
-      fetchData();
+      fetchData(searchTerm); 
     }
   };
 
@@ -57,7 +67,7 @@ export default function DevicesList() {
         await createDevice(data);
       }
       setIsModalOpen(false);
-      fetchData();
+      fetchData(searchTerm);
     } catch (error) {
       alert('Błąd zapisu! Sprawdź czy wypełniłeś wszystkie pola.');
       console.error(error);
@@ -129,6 +139,24 @@ export default function DevicesList() {
           Dodaj Urządzenie
         </Button>
       </Box>
+
+      <Paper sx={{ p: 2, mb: 2 }}>
+        <TextField
+          fullWidth
+          variant="outlined"
+          placeholder="Szukaj urządzenia (numer seryjny, typ, właściciel)..."
+          value={searchTerm}
+          onChange={handleSearchChange}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <SearchIcon color="action" />
+              </InputAdornment>
+            ),
+          }}
+          size="small"
+        />
+      </Paper>
 
       <Paper sx={{ height: 500, width: '100%' }}>
         <DataGrid

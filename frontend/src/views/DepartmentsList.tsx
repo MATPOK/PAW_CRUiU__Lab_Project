@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react';
 import { DataGrid, type GridColDef, GridActionsCellItem } from '@mui/x-data-grid';
-import { Container, Typography, Paper, Box, Button, Chip } from '@mui/material';
+import { Container, Typography, Paper, Box, Button, Chip, TextField, InputAdornment } from '@mui/material'; // Dodano TextField, InputAdornment
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import BusinessIcon from '@mui/icons-material/Business';
+import SearchIcon from '@mui/icons-material/Search'; 
+
 import { getDepartments, deleteDepartment, createDepartment, updateDepartment, type Department } from '../services/departmentService';
 import DepartmentFormDialog from '../components/DepartmentFormDialog';
 import type { DepartmentFormData } from '../schemas/departmentSchema';
@@ -16,10 +18,12 @@ export default function DepartmentsList() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingDept, setEditingDept] = useState<Department | null>(null);
 
-  const fetchData = async () => {
+  const [searchTerm, setSearchTerm] = useState('');
+
+  const fetchData = async (search: string = '') => {
     setLoading(true);
     try {
-      const data = await getDepartments();
+      const data = await getDepartments(search);
       setRows(data);
     } catch (error) {
       console.error("Błąd pobierania działów:", error);
@@ -29,14 +33,20 @@ export default function DepartmentsList() {
   };
 
   useEffect(() => {
-    fetchData();
+    fetchData(); 
   }, []);
+
+  const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const value = event.target.value;
+    setSearchTerm(value); 
+    fetchData(value);     
+  };
 
   const handleDelete = async (id: number) => {
     if (confirm('Czy na pewno usunąć ten dział?')) {
       try {
         await deleteDepartment(id);
-        fetchData();
+        fetchData(searchTerm);
       } catch (error) {
         alert('Nie można usunąć działu, który ma przypisanych pracowników.');
       }
@@ -61,7 +71,7 @@ export default function DepartmentsList() {
         await createDepartment(data);
       }
       setIsModalOpen(false);
-      fetchData();
+      fetchData(searchTerm);
     } catch (error) {
       console.error(error);
       alert('Błąd zapisu.');
@@ -123,6 +133,24 @@ export default function DepartmentsList() {
           Dodaj Dział
         </Button>
       </Box>
+
+      <Paper sx={{ p: 2, mb: 2 }}>
+        <TextField
+          fullWidth
+          variant="outlined"
+          placeholder="Szukaj działu (nazwa, lokalizacja)..."
+          value={searchTerm}
+          onChange={handleSearchChange}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <SearchIcon color="action" />
+              </InputAdornment>
+            ),
+          }}
+          size="small"
+        />
+      </Paper>
 
       <Paper sx={{ height: 500, width: '100%' }}>
         <DataGrid

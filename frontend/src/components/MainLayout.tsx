@@ -26,7 +26,6 @@ export default function MainLayout({ children }: MainLayoutProps) {
   return (
     <Box sx={{ display: 'flex' }}>
 
-      {/* SIDEBAR */}
       <Drawer
         sx={{
           width: drawerWidth,
@@ -44,7 +43,7 @@ export default function MainLayout({ children }: MainLayoutProps) {
       >
         <Toolbar>
           <Typography variant="h6" noWrap component="div" sx={{ fontWeight: 'bold', color: 'primary.main', display: 'flex', alignItems: 'center', gap: 1 }}>
-             📊 AssetManager
+              📊 CRUiU
           </Typography>
         </Toolbar>
         
@@ -73,10 +72,38 @@ export default function MainLayout({ children }: MainLayoutProps) {
         </List>
       </Drawer>
 
-      {/* TREŚĆ */}
-      <Box component="main" sx={{ flexGrow: 1, bgcolor: 'background.default', p: 3, minHeight: '100vh', color: 'text.primary' }}>
+      <Box 
+        component="main" 
+        sx={{ 
+          flexGrow: 1, 
+          bgcolor: 'background.default', 
+          p: 3, 
+          minHeight: '100vh', 
+          color: 'text.primary',
+          display: 'flex',
+          flexDirection: 'column' 
+        }}
+      >
         <Toolbar />
-        {children}
+        
+        <Box sx={{ flexGrow: 1 }}>
+            {children}
+        </Box>
+
+        <Box 
+          component="footer" 
+          sx={{ 
+            mt: 4, 
+            pt: 3, 
+            borderTop: '1px solid rgba(255, 255, 255, 0.1)', 
+            textAlign: 'center' 
+          }}
+        >
+            <Typography variant="body2" color="text.secondary">
+                &copy; {new Date().getFullYear()} Mateusz Pokrywka, Maciej Pereślucha
+            </Typography>
+        </Box>
+
       </Box>
     </Box>
   );

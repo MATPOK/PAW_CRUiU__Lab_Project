@@ -13,10 +13,8 @@ export class DevicesController {
   }
 
   @Get()
-  findAll(@Query('page') page?: number, @Query('limit') limit?: number) {
-    const pageNum = page ? Number(page) : 1;
-    const limitNum = limit ? Number(limit) : 1000;
-    return this.devicesService.findAll(pageNum, limitNum);
+  findAll(@Query('search') search?: string) { 
+    return this.devicesService.findAll(search);
   }
 
   @Get(':id')

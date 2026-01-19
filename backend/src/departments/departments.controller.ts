@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
 import { DepartmentsService } from './departments.service';
 import { CreateDepartmentDto } from './dto/create-department.dto';
 import { UpdateDepartmentDto } from './dto/update-department.dto';
@@ -13,8 +13,8 @@ export class DepartmentsController {
   }
 
   @Get()
-  findAll() {
-    return this.departmentsService.findAll();
+  findAll(@Query('search') search?: string) {
+    return this.departmentsService.findAll(search);
   }
 
   @Get(':id')

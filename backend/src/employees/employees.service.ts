@@ -13,15 +13,19 @@ export class EmployeesService {
     });
   }
 
-  findAll() {
+  findAll(search?: string) {
+    const where = search ? {
+      OR: [
+        { firstName: { contains: search, mode: 'insensitive' as const } },
+        { lastName: { contains: search, mode: 'insensitive' as const } },
+        { email: { contains: search, mode: 'insensitive' as const } }
+      ]
+    } : {};
+
     return this.prisma.employee.findMany({
-      include: {
-        department: true, 
-        devices: true,   
-      },
-      orderBy: {
-        id: 'desc',
-      }
+      where,
+      include: { department: true, devices: true },
+      orderBy: { id: 'asc' },
     });
   }
 
