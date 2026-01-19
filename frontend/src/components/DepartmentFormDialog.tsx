@@ -3,14 +3,16 @@ import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField, Stack } from '@mui/material';
 import { departmentSchema, type DepartmentFormData } from '../schemas/departmentSchema';
+import type { Department } from '../services/departmentService';
 
 interface Props {
   open: boolean;
   onClose: () => void;
   onSubmit: (data: DepartmentFormData) => Promise<void>;
+  departmentToEdit?: Department | null;
 }
 
-export default function DepartmentFormDialog({ open, onClose, onSubmit }: Props) {
+export default function DepartmentFormDialog({ open, onClose, onSubmit, departmentToEdit }: Props) {
   const { control, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm<DepartmentFormData>({
     resolver: zodResolver(departmentSchema),
     defaultValues: {
@@ -21,9 +23,16 @@ export default function DepartmentFormDialog({ open, onClose, onSubmit }: Props)
 
   useEffect(() => {
     if (open) {
-      reset({ name: '', location: '' });
+      if (departmentToEdit) {
+        reset({
+          name: departmentToEdit.name,
+          location: departmentToEdit.location,
+        });
+      } else {
+        reset({ name: '', location: '' });
+      }
     }
-  }, [open, reset]);
+  }, [open, departmentToEdit, reset]);
 
   const handleFormSubmit = (data: DepartmentFormData) => {
     onSubmit(data);
@@ -31,7 +40,10 @@ export default function DepartmentFormDialog({ open, onClose, onSubmit }: Props)
 
   return (
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
-      <DialogTitle>Dodaj Dział</DialogTitle>
+      <DialogTitle>
+        {departmentToEdit ? 'Edytuj Dział' : 'Dodaj Dział'}
+      </DialogTitle>
+      
       <form onSubmit={handleSubmit(handleFormSubmit)}>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
@@ -42,7 +54,7 @@ export default function DepartmentFormDialog({ open, onClose, onSubmit }: Props)
               render={({ field }) => (
                 <TextField 
                   {...field} 
-                  label="Nazwa Działu (np. Logistyka)" 
+                  label="Nazwa Działu" 
                   fullWidth 
                   error={!!errors.name} 
                   helperText={errors.name?.message} 
@@ -56,7 +68,7 @@ export default function DepartmentFormDialog({ open, onClose, onSubmit }: Props)
               render={({ field }) => (
                 <TextField 
                   {...field} 
-                  label="Lokalizacja (np. Budynek B)" 
+                  label="Lokalizacja" 
                   fullWidth 
                   error={!!errors.location} 
                   helperText={errors.location?.message} 
@@ -68,7 +80,9 @@ export default function DepartmentFormDialog({ open, onClose, onSubmit }: Props)
         </DialogContent>
         <DialogActions>
           <Button onClick={onClose}>Anuluj</Button>
-          <Button type="submit" variant="contained" disabled={isSubmitting}>Zapisz</Button>
+          <Button type="submit" variant="contained" disabled={isSubmitting}>
+            {departmentToEdit ? 'Zapisz zmiany' : 'Dodaj'}
+          </Button>
         </DialogActions>
       </form>
     </Dialog>

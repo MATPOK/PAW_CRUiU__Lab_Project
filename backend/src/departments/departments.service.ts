@@ -19,7 +19,7 @@ export class DepartmentsService {
         employees: true,
       },
       orderBy: {
-        id: 'asc',
+        id: 'desc',
       }
     });
   }

@@ -20,3 +20,8 @@ export const createDepartment = async (data: { name: string; location: string })
 export const deleteDepartment = async (id: number) => {
   await api.delete(`/departments/${id}`);
 };
+
+export const updateDepartment = async (id: number, data: { name: string; location: string }) => {
+  const response = await api.patch<Department>(`/departments/${id}`, data);
+  return response.data;
+};

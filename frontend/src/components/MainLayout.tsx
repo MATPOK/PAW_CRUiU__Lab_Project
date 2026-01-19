@@ -1,12 +1,10 @@
 import type { ReactNode } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom'; // <--- NOWE IMPORTY
-import { Box, Drawer, List, ListItem, ListItemButton, ListItemIcon, ListItemText, Toolbar, AppBar, Typography, Avatar, InputBase, IconButton } from '@mui/material';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { Box, Drawer, List, ListItem, ListItemButton, ListItemIcon, ListItemText, Toolbar, Typography } from '@mui/material';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import ComputerIcon from '@mui/icons-material/Computer';
 import PeopleIcon from '@mui/icons-material/People';
 import BusinessIcon from '@mui/icons-material/Business';
-import SearchIcon from '@mui/icons-material/Search';
-import NotificationsIcon from '@mui/icons-material/Notifications';
 
 const drawerWidth = 260;
 
@@ -15,10 +13,9 @@ interface MainLayoutProps {
 }
 
 export default function MainLayout({ children }: MainLayoutProps) {
-  const navigate = useNavigate(); // Funkcja do zmiany strony
-  const location = useLocation(); // Informacja o aktualnym adresie
+  const navigate = useNavigate();
+  const location = useLocation();
 
-  // Menu z definicją ścieżek URL
   const menuItems = [
     { text: 'Dashboard', icon: <DashboardIcon />, path: '/' },
     { text: 'Urządzenia', icon: <ComputerIcon />, path: '/devices' },
@@ -28,20 +25,6 @@ export default function MainLayout({ children }: MainLayoutProps) {
 
   return (
     <Box sx={{ display: 'flex' }}>
-      
-      {/* NAVBAR */}
-      <AppBar position="fixed" sx={{ width: `calc(100% - ${drawerWidth}px)`, ml: `${drawerWidth}px`, bgcolor: 'background.default', boxShadow: 'none', borderBottom: '1px solid #1f2937' }}>
-        <Toolbar sx={{ display: 'flex', justifyContent: 'space-between' }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', bgcolor: '#151b23', borderRadius: 2, px: 2, py: 0.5, width: 300 }}>
-            <SearchIcon sx={{ color: 'text.secondary', mr: 1 }} />
-            <InputBase placeholder="Szukaj..." sx={{ color: 'white', width: '100%' }} />
-          </Box>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-            <IconButton color="inherit"><NotificationsIcon /></IconButton>
-            <Avatar sx={{ bgcolor: 'primary.main' }}>A</Avatar>
-          </Box>
-        </Toolbar>
-      </AppBar>
 
       {/* SIDEBAR */}
       <Drawer
@@ -67,13 +50,12 @@ export default function MainLayout({ children }: MainLayoutProps) {
         
         <List sx={{ px: 2 }}>
            {menuItems.map((item) => {
-             // Sprawdzamy, czy ten przycisk powinien być aktywny (niebieski)
              const isActive = location.pathname === item.path || (item.path !== '/' && location.pathname.startsWith(item.path));
              
              return (
               <ListItem key={item.text} disablePadding sx={{ mb: 1 }}>
                 <ListItemButton 
-                  onClick={() => navigate(item.path)} // <--- KLIKNIĘCIE ZMIENIA STRONĘ
+                  onClick={() => navigate(item.path)}
                   sx={{ 
                     borderRadius: 2, 
                     bgcolor: isActive ? 'primary.main' : 'transparent',

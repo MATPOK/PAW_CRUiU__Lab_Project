@@ -1,23 +1,28 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { ValidationPipe } from '@nestjs/common';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { AllExceptionsFilter } from './http-exception.filter';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  app.enableCors();
 
-  // Włączamy walidację globalnie (dla DTO)
-  app.useGlobalPipes(new ValidationPipe());
+  app.useGlobalPipes(new ValidationPipe({
+    transform: true,
+    whitelist: true, 
+  }));
 
-  // Konfiguracja Swaggera
+  app.useGlobalFilters(new AllExceptionsFilter())
+
   const config = new DocumentBuilder()
-    .setTitle('CRUiU API')
-    .setDescription('Dokumentacja API systemu zarządzania urządzeniami')
+    .setTitle('AssetManager API')
+    .setDescription('Dokumentacja API do zarządzania zasobami')
     .setVersion('1.0')
     .build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, document);
+
+  app.enableCors();
 
   await app.listen(3000);
 }

@@ -1,99 +1,134 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField, Stack } from '@mui/material';
+import { Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField, Stack, MenuItem } from '@mui/material';
 import { deviceSchema, type DeviceFormData } from '../schemas/deviceSchema';
+import { getEmployees } from '../services/employeeService';
+import type { Employee, Device } from '../types';
 
 interface Props {
   open: boolean;
   onClose: () => void;
   onSubmit: (data: DeviceFormData) => Promise<void>;
+  deviceToEdit?: Device | null;
 }
 
-export default function DeviceFormDialog({ open, onClose, onSubmit }: Props) {
-  const { control, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm<DeviceFormData>({
+export default function DeviceFormDialog({ open, onClose, onSubmit, deviceToEdit }: Props) {
+  const [employees, setEmployees] = useState<Employee[]>([]);
+
+  const { control, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm({
     resolver: zodResolver(deviceSchema),
     defaultValues: {
       serialNumber: '',
       type: '',
       price: 0,
-      purchaseDate: new Date().toISOString().split('T')[0], // Dzisiejsza data YYYY-MM-DD
+      purchaseDate: new Date().toISOString().split('T')[0],
+      employeeId: '', 
     },
   });
 
-  // Resetuj formularz przy każdym otwarciu
   useEffect(() => {
-    if (open) reset();
-  }, [open, reset]);
+    if (open) {
+      getEmployees().then(setEmployees).catch(console.error);
+
+      if (deviceToEdit) {
+        reset({
+          serialNumber: deviceToEdit.serialNumber,
+          type: deviceToEdit.type,
+          price: deviceToEdit.price,
+          purchaseDate: new Date(deviceToEdit.purchaseDate).toISOString().split('T')[0],
+          employeeId: deviceToEdit.employeeId ? deviceToEdit.employeeId : '',
+        });
+      } else {
+        reset({
+          serialNumber: '',
+          type: '',
+          price: 0,
+          purchaseDate: new Date().toISOString().split('T')[0],
+          employeeId: '', 
+        });
+      }
+    }
+  }, [open, deviceToEdit, reset]);
+
+  const handleFormSubmit = (data: any) => {
+    const payload = {
+      ...data,
+      purchaseDate: new Date(data.purchaseDate).toISOString(),
+      employeeId: data.employeeId === '' ? null : Number(data.employeeId),
+    };
+    onSubmit(payload);
+  };
 
   return (
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
-      <DialogTitle>Dodaj nowe urządzenie</DialogTitle>
-      <form onSubmit={handleSubmit(onSubmit)}>
+      <DialogTitle>
+        {deviceToEdit ? 'Edytuj Urządzenie' : 'Dodaj Urządzenie'}
+      </DialogTitle>
+      
+      <form onSubmit={handleSubmit(handleFormSubmit)}>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
             
-            {/* Pole: Numer Seryjny */}
             <Controller
               name="serialNumber"
               control={control}
               render={({ field }) => (
                 <TextField 
-                  {...field} 
-                  label="Numer Seryjny" 
-                  error={!!errors.serialNumber}
-                  helperText={errors.serialNumber?.message}
-                  fullWidth 
+                  {...field} label="Numer Seryjny" fullWidth 
+                  error={!!errors.serialNumber} helperText={errors.serialNumber?.message as string} 
                 />
               )}
             />
 
-            {/* Pole: Typ */}
             <Controller
               name="type"
               control={control}
               render={({ field }) => (
                 <TextField 
-                  {...field} 
-                  label="Typ (np. Laptop)" 
-                  error={!!errors.type}
-                  helperText={errors.type?.message}
-                  fullWidth 
+                  {...field} label="Typ" fullWidth 
+                  error={!!errors.type} helperText={errors.type?.message as string} 
                 />
               )}
             />
 
-            {/* Pole: Cena */}
             <Controller
               name="price"
               control={control}
               render={({ field }) => (
                 <TextField 
-                  {...field} 
-                  label="Cena (PLN)" 
-                  type="number"
-                  error={!!errors.price}
-                  helperText={errors.price?.message}
-                  onChange={(e) => field.onChange(Number(e.target.value))}
-                  fullWidth 
+                  {...field} type="number" label="Cena (PLN)" fullWidth 
+                  error={!!errors.price} helperText={errors.price?.message as string} 
                 />
               )}
             />
 
-            {/* Pole: Data Zakupu */}
             <Controller
               name="purchaseDate"
               control={control}
               render={({ field }) => (
                 <TextField 
-                  {...field} 
-                  label="Data Zakupu" 
-                  type="date"
-                  InputLabelProps={{ shrink: true }}
-                  error={!!errors.purchaseDate}
-                  helperText={errors.purchaseDate?.message}
-                  fullWidth 
+                  {...field} type="date" label="Data Zakupu" fullWidth InputLabelProps={{ shrink: true }}
+                  error={!!errors.purchaseDate} helperText={errors.purchaseDate?.message as string} 
                 />
+              )}
+            />
+
+            <Controller
+              name="employeeId"
+              control={control}
+              render={({ field }) => (
+                <TextField 
+                  {...field} select label="Przypisz do pracownika" fullWidth 
+                  helperText="Zostaw puste, aby dodać do magazynu"
+                >
+                  <MenuItem value=""><em>-- Magazyn --</em></MenuItem>
+                  {employees.map((emp) => (
+                    <MenuItem key={emp.id} value={emp.id}>
+                      {emp.firstName} {emp.lastName}
+                    </MenuItem>
+                  ))}
+                </TextField>
               )}
             />
 
@@ -102,7 +137,7 @@ export default function DeviceFormDialog({ open, onClose, onSubmit }: Props) {
         <DialogActions>
           <Button onClick={onClose}>Anuluj</Button>
           <Button type="submit" variant="contained" disabled={isSubmitting}>
-            Zapisz
+            {deviceToEdit ? 'Zapisz zmiany' : 'Dodaj'}
           </Button>
         </DialogActions>
       </form>

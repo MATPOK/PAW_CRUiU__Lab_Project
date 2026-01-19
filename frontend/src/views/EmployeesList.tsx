@@ -3,17 +3,18 @@ import { DataGrid, type GridColDef, GridActionsCellItem } from '@mui/x-data-grid
 import { Container, Typography, Paper, Chip, Box, Button } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
-import { getEmployees, deleteEmployee, createEmployee } from '../services/employeeService';
+import EditIcon from '@mui/icons-material/Edit';
+import { getEmployees, deleteEmployee, createEmployee, updateEmployee } from '../services/employeeService';
 import type { Employee } from '../types';
-import EmployeeFormDialog from '../components/EmployeeFormDialog'; // <--- Import modala
+import EmployeeFormDialog from '../components/EmployeeFormDialog';
 import type { EmployeeFormData } from '../schemas/employeeSchema';
 
 export default function EmployeesList() {
   const [rows, setRows] = useState<Employee[]>([]);
   const [loading, setLoading] = useState(false);
   
-  // Stan dla modala
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
 
   const fetchData = async () => {
     setLoading(true);
@@ -37,19 +38,32 @@ export default function EmployeesList() {
         await deleteEmployee(id);
         fetchData();
       } catch (error) {
-        alert('Nie udało się usunąć.');
+        alert('Nie udało się usunąć. Może ma przypisane urządzenia?');
       }
     }
   };
 
-  // Obsługa dodawania
-  const handleCreate = async (data: EmployeeFormData) => {
+  const handleOpenAdd = () => {
+    setEditingEmployee(null);
+    setIsModalOpen(true);
+  };
+
+  const handleEdit = (employee: Employee) => {
+    setEditingEmployee(employee);
+    setIsModalOpen(true);
+  };
+
+  const handleSave = async (data: EmployeeFormData) => {
     try {
-      await createEmployee(data);
-      setIsModalOpen(false); // Zamknij modal
-      fetchData();           // Odśwież tabelę
+      if (editingEmployee) {
+        await updateEmployee(editingEmployee.id, data);
+      } else {
+        await createEmployee(data);
+      }
+      setIsModalOpen(false);
+      fetchData();
     } catch (error) {
-      alert('Błąd dodawania. Sprawdź czy email jest unikalny i czy dział istnieje w bazie!');
+      alert('Błąd zapisu. Sprawdź czy email jest unikalny!');
     }
   };
 
@@ -76,10 +90,16 @@ export default function EmployeesList() {
       field: 'actions',
       type: 'actions',
       headerName: 'Akcje',
-      width: 80,
+      width: 100,
       getActions: (params) => [
         <GridActionsCellItem
-          icon={<DeleteIcon color="error" />} 
+          icon={<EditIcon color="primary" />}
+          label="Edit"
+          onClick={() => handleEdit(params.row)}
+          color="inherit"
+        />,
+        <GridActionsCellItem
+          icon={<DeleteIcon color="error" />}
           label="Delete"
           onClick={() => handleDelete(params.row.id)}
           color="inherit"
@@ -95,7 +115,7 @@ export default function EmployeesList() {
         <Button 
           variant="contained" 
           startIcon={<AddIcon />} 
-          onClick={() => setIsModalOpen(true)} // <--- Otwórz modal
+          onClick={handleOpenAdd}
         >
           Dodaj Pracownika
         </Button>
@@ -112,11 +132,12 @@ export default function EmployeesList() {
         />
       </Paper>
 
-      {/* Modal */}
+      {/* Modal z obsługą edycji */}
       <EmployeeFormDialog 
         open={isModalOpen} 
         onClose={() => setIsModalOpen(false)} 
-        onSubmit={handleCreate} 
+        onSubmit={handleSave} 
+        employeeToEdit={editingEmployee}
       />
     </Container>
   );

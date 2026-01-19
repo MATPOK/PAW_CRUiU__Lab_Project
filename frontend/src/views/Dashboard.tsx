@@ -118,11 +118,6 @@ export default function Dashboard() {
           />
         </Grid>
       </Grid>
-      
-      <Box mt={4}>
-         <Typography sx={{color: 'gray'}}>Wykresy i szczegółowe analizy pojawią się w wersji 2.0</Typography>
-      </Box>
-
     </Container>
   );
 }

@@ -1,33 +1,28 @@
 import { useEffect, useState } from 'react';
-import { DataGrid, type GridColDef, type GridPaginationModel, GridActionsCellItem } from '@mui/x-data-grid';
-import { Container, Typography, Paper, Chip, Button, Box } from '@mui/material';
+import { DataGrid, type GridColDef, GridActionsCellItem } from '@mui/x-data-grid';
+import { Container, Typography, Paper, Box, Button, Chip } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
-import { getDevices, createDevice, deleteDevice } from '../services/deviceService';
+import EditIcon from '@mui/icons-material/Edit';
+import ComputerIcon from '@mui/icons-material/Computer';
+import { getDevices, deleteDevice, createDevice, updateDevice } from '../services/deviceService';
 import type { Device } from '../types';
-import DeviceFormDialog from '../components/DeviceFormDialog'; // Import formularza
+import DeviceFormDialog from '../components/DeviceFormDialog';
 import type { DeviceFormData } from '../schemas/deviceSchema';
 
 export default function DevicesList() {
   const [rows, setRows] = useState<Device[]>([]);
   const [loading, setLoading] = useState(false);
-  const [totalRows, setTotalRows] = useState(0);
-  const [paginationModel, setPaginationModel] = useState<GridPaginationModel>({
-    page: 0,
-    pageSize: 5,
-  });
-
-  // Stan modala
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingDevice, setEditingDevice] = useState<Device | null>(null);
 
   const fetchData = async () => {
     setLoading(true);
     try {
-      const data = await getDevices(paginationModel.page, paginationModel.pageSize);
-      setRows(data.data);
-      setTotalRows(data.total);
+      const data = await getDevices();
+      setRows(data);
     } catch (error) {
-      console.error("Błąd:", error);
+      console.error("Błąd pobierania:", error);
     } finally {
       setLoading(false);
     }
@@ -35,93 +30,122 @@ export default function DevicesList() {
 
   useEffect(() => {
     fetchData();
-  }, [paginationModel]);
+  }, []);
 
-  // Obsługa dodawania
-  const handleCreate = async (data: DeviceFormData) => {
-    try {
-      await createDevice(data);
-      setIsModalOpen(false); // Zamknij modal
-      fetchData(); // Odśwież tabelę
-    } catch (error) {
-      alert('Błąd podczas dodawania (sprawdź czy nr seryjny jest unikalny!)');
+  const handleDelete = async (id: number) => {
+    if (confirm('Usunąć to urządzenie?')) {
+      await deleteDevice(id);
+      fetchData();
     }
   };
 
-  // Obsługa usuwania
-  const handleDelete = async (id: number) => {
-    if (confirm('Czy na pewno chcesz usunąć to urządzenie?')) {
-      try {
-        await deleteDevice(id);
-        fetchData(); // Odśwież tabelę
-      } catch (error) {
-        alert('Nie udało się usunąć.');
+  const handleOpenAdd = () => {
+    setEditingDevice(null);
+    setIsModalOpen(true);
+  };
+
+  const handleEdit = (device: Device) => {
+    setEditingDevice(device);
+    setIsModalOpen(true);
+  };
+
+  const handleSave = async (data: DeviceFormData) => {
+    try {
+      if (editingDevice) {
+        await updateDevice(editingDevice.id, data);
+      } else {
+        await createDevice(data);
       }
+      setIsModalOpen(false);
+      fetchData();
+    } catch (error) {
+      alert('Błąd zapisu! Sprawdź czy wypełniłeś wszystkie pola.');
+      console.error(error);
     }
   };
 
   const columns: GridColDef[] = [
     { field: 'id', headerName: 'ID', width: 50 },
-    { field: 'serialNumber', headerName: 'Nr Seryjny', width: 150 },
-    { field: 'type', headerName: 'Typ', width: 120 },
-    { field: 'price', headerName: 'Cena', width: 100, renderCell: (p) => `${p.value} zł` },
     { 
-      field: 'employee', 
-      headerName: 'Użytkownik', 
-      width: 180,
-      valueGetter: (p: any) => p ? `${p.firstName} ${p.lastName}` : 'Brak',
-      renderCell: (p) => p.value !== 'Brak' 
-        ? <Chip label={p.value} color="primary" size="small" variant="outlined"/> 
-        : <Chip label="Magazyn" size="small" />
+      field: 'serialNumber', 
+      headerName: 'Nr Seryjny', 
+      width: 150,
+      renderCell: (params) => (
+        <Box display="flex" alignItems="center" gap={1}>
+           <ComputerIcon fontSize="small" color="disabled"/>
+           {params.value}
+        </Box>
+      )
     },
-    // NOWE: Kolumna Akcji (Usuwanie)
+    { field: 'type', headerName: 'Typ', width: 120 },
+    { 
+      field: 'price', 
+      headerName: 'Cena', 
+      width: 100,
+      valueFormatter: (value) => `${value} zł`
+    },
+    {
+      field: 'employee',
+      headerName: 'Użytkownik',
+      width: 200,
+      renderCell: (params) => {
+        if (params.value) {
+           return <Chip label={`${params.value.firstName} ${params.value.lastName}`} color="primary" variant="outlined" size="small" />;
+        }
+        return <Chip label="Magazyn" color="default" size="small" />;
+      }
+    },
     {
       field: 'actions',
       type: 'actions',
       headerName: 'Akcje',
-      width: 80,
+      width: 100,
       getActions: (params) => [
+        <GridActionsCellItem
+          icon={<EditIcon color="primary" />}
+          label="Edit"
+          onClick={() => handleEdit(params.row)}
+          color="inherit"
+        />,
         <GridActionsCellItem
           icon={<DeleteIcon color="error" />}
           label="Delete"
           onClick={() => handleDelete(params.row.id)}
+          color="inherit"
         />,
       ],
     },
   ];
 
   return (
-    <Container maxWidth="lg" sx={{ mt: 4 }}>
+    <Container maxWidth="lg">
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-        <Typography variant="h4">Rejestr Urządzeń</Typography>
+        <Typography variant="h4" sx={{ color: 'white' }}>Rejestr Urządzeń</Typography>
         <Button 
           variant="contained" 
           startIcon={<AddIcon />} 
-          onClick={() => setIsModalOpen(true)}
+          onClick={handleOpenAdd}
         >
           Dodaj Urządzenie
         </Button>
       </Box>
-      
+
       <Paper sx={{ height: 500, width: '100%' }}>
         <DataGrid
           rows={rows}
           columns={columns}
-          rowCount={totalRows}
           loading={loading}
           pageSizeOptions={[5, 10]}
-          paginationModel={paginationModel}
-          paginationMode="server"
-          onPaginationModelChange={setPaginationModel}
+          initialState={{ pagination: { paginationModel: { pageSize: 5 } } }}
           disableRowSelectionOnClick
         />
       </Paper>
 
-      {/* Modal z Formularzem */}
       <DeviceFormDialog 
         open={isModalOpen} 
         onClose={() => setIsModalOpen(false)} 
-        onSubmit={handleCreate} 
+        onSubmit={handleSave} 
+        deviceToEdit={editingDevice} 
       />
     </Container>
   );

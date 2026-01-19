@@ -3,15 +3,18 @@ import { DataGrid, type GridColDef, GridActionsCellItem } from '@mui/x-data-grid
 import { Container, Typography, Paper, Box, Button, Chip } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
+import EditIcon from '@mui/icons-material/Edit';
 import BusinessIcon from '@mui/icons-material/Business';
-import { getDepartments, deleteDepartment, createDepartment, type Department } from '../services/departmentService';
+import { getDepartments, deleteDepartment, createDepartment, updateDepartment, type Department } from '../services/departmentService';
 import DepartmentFormDialog from '../components/DepartmentFormDialog';
 import type { DepartmentFormData } from '../schemas/departmentSchema';
 
 export default function DepartmentsList() {
   const [rows, setRows] = useState<Department[]>([]);
   const [loading, setLoading] = useState(false);
+  
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingDept, setEditingDept] = useState<Department | null>(null);
 
   const fetchData = async () => {
     setLoading(true);
@@ -30,7 +33,7 @@ export default function DepartmentsList() {
   }, []);
 
   const handleDelete = async (id: number) => {
-    if (confirm('Czy na pewno usunąć ten dział? Upewnij się, że nie ma w nim pracowników!')) {
+    if (confirm('Czy na pewno usunąć ten dział?')) {
       try {
         await deleteDepartment(id);
         fetchData();
@@ -40,14 +43,28 @@ export default function DepartmentsList() {
     }
   };
 
-  const handleCreate = async (data: DepartmentFormData) => {
+  const handleOpenAdd = () => {
+    setEditingDept(null);
+    setIsModalOpen(true);
+  };
+
+  const handleEdit = (dept: Department) => {
+    setEditingDept(dept);
+    setIsModalOpen(true);
+  };
+
+  const handleSave = async (data: DepartmentFormData) => {
     try {
-      await createDepartment(data);
+      if (editingDept) {
+        await updateDepartment(editingDept.id, data);
+      } else {
+        await createDepartment(data);
+      }
       setIsModalOpen(false);
       fetchData();
     } catch (error) {
       console.error(error);
-      alert('Błąd podczas dodawania działu.');
+      alert('Błąd zapisu.');
     }
   };
 
@@ -76,8 +93,14 @@ export default function DepartmentsList() {
       field: 'actions',
       type: 'actions',
       headerName: 'Akcje',
-      width: 80,
+      width: 100,
       getActions: (params) => [
+        <GridActionsCellItem
+          icon={<EditIcon color="primary" />}
+          label="Edit"
+          onClick={() => handleEdit(params.row)}
+          color="inherit"
+        />,
         <GridActionsCellItem
           icon={<DeleteIcon color="error" />}
           label="Delete"
@@ -95,7 +118,7 @@ export default function DepartmentsList() {
         <Button 
           variant="contained" 
           startIcon={<AddIcon />} 
-          onClick={() => setIsModalOpen(true)}
+          onClick={handleOpenAdd}
         >
           Dodaj Dział
         </Button>
@@ -106,8 +129,8 @@ export default function DepartmentsList() {
           rows={rows}
           columns={columns}
           loading={loading}
-          pageSizeOptions={[5, 10]}
-          initialState={{ pagination: { paginationModel: { pageSize: 5 } } }}
+          pageSizeOptions={[5, 10, 20]}
+          initialState={{ pagination: { paginationModel: { pageSize: 10 } } }}
           disableRowSelectionOnClick
         />
       </Paper>
@@ -115,7 +138,8 @@ export default function DepartmentsList() {
       <DepartmentFormDialog 
         open={isModalOpen} 
         onClose={() => setIsModalOpen(false)} 
-        onSubmit={handleCreate} 
+        onSubmit={handleSave} 
+        departmentToEdit={editingDept}
       />
     </Container>
   );

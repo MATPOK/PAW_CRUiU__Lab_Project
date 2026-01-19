@@ -15,3 +15,8 @@ export const createEmployee = async (data: EmployeeFormData) => {
   const response = await api.post<Employee>('/employees', data);
   return response.data;
 };
+
+export const updateEmployee = async (id: number, data: EmployeeFormData) => {
+  const response = await api.patch<Employee>(`/employees/${id}`, data);
+  return response.data;
+};

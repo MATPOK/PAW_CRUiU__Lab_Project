@@ -1,6 +1,5 @@
 # frontend/Dockerfile
 
-# ZMIANA: UÅ¼ywamy Node 22 (wymagane przez nowe Vite)
 FROM node:22-alpine
 
 WORKDIR /app

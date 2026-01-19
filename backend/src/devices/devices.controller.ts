@@ -13,11 +13,10 @@ export class DevicesController {
   }
 
   @Get()
-  findAll(
-    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
-    @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
-  ) {
-    return this.devicesService.findAll(page, limit);
+  findAll(@Query('page') page?: number, @Query('limit') limit?: number) {
+    const pageNum = page ? Number(page) : 1;
+    const limitNum = limit ? Number(limit) : 1000;
+    return this.devicesService.findAll(pageNum, limitNum);
   }
 
   @Get(':id')
